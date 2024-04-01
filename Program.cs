@@ -9,3 +9,8 @@ builder.Configuration.AddAzureKeyVault(
 var app = builder.Build();
 
 app.MapGet("/", () => "Hello World!");
+
+app.MapGet("/hello", () => "Hello World!");
+
+app.Run();
+app.Run();
