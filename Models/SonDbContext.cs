@@ -22,5 +22,6 @@ namespace Son.Models
         // {
         //     // Model yapılandırmaları
         // }
+        
     }
 }
