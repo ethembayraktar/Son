@@ -1,16 +1,30 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Son.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Azure Key Vault'tan sırları almak için yapılandırma ekleme
-builder.Configuration.AddAzureKeyVault(
-    $"https://sonkey.vault.azure.net/",  // Azure Key Vault URL'si
-    "b00f8ec2-d3ea-474c-b19a-e5e796c97910",  // Azure AD Uygulama Kimliği
-    "EthemBayraktar2002");        // Azure AD Uygulama Şifresi
+// DbContext yapılandırması
+builder.Services.AddDbContext<SonDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSqlConnection")));
 
 var app = builder.Build();
 
+// Database migration'larını otomatik uygula
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var dbContext = services.GetRequiredService<SonDbContext>();
+    dbContext.Database.Migrate();
+}
+
 app.MapGet("/", () => "Hello World!");
 
-app.MapGet("/hello", () => "Hello World!");
+app.MapGet("/hello", async (SonDbContext dbContext) =>
+{
+    var greeting = await dbContext.Greetings.FirstOrDefaultAsync();
+    return greeting != null ? greeting.Message : "Hello World!";
+});
 
-app.Run();
 app.Run();
